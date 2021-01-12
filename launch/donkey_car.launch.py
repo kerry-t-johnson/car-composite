@@ -8,10 +8,9 @@ def generate_launch_description():
     return launch.LaunchDescription([
         launch_ros.actions.Node(
             package='car_composite',
-            executable='subscriber',
+            executable='lcd',
             output='screen',
             arguments = [
-                '--ros-args', '--log-level', 'debug'
             ],
         ),
         launch_ros.actions.ComposableNodeContainer(

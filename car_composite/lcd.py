@@ -18,7 +18,7 @@ import os
 import rclpy.node
 import rcl_interfaces.msg
 import time
-import utils
+from car_composite import utils
 
 class ROS_Lcd(rclpy.node.Node):
 
@@ -26,6 +26,7 @@ class ROS_Lcd(rclpy.node.Node):
     DEFAULT_SCROLL_RATE_S   = 5.0
 
     def __init__(self, address=0x27, rows=4, cols = 20):
+        super(ROS_Lcd, self).__init__('ROS_lcd')
         '''
         Constructor
         '''
@@ -35,14 +36,14 @@ class ROS_Lcd(rclpy.node.Node):
                                                                       description  = 'True LCD can only be used on the SoC.  Otherwise, a mock is used.'))
         
         self.declare_parameter('rotate_rate_ms',
-                               ROS_Lcd.DEFAULT_UPDATE_RATE_MS,
+                               ROS_Lcd.DEFAULT_ROTATE_RATE_S,
                                rcl_interfaces.msg.ParameterDescriptor(type         = rcl_interfaces.msg.ParameterType.PARAMETER_DOUBLE,
-                                                                      description  = 'LCD marquee update rate in fractional seconds.  Default: {d}s'.format(d = ROS_Lcd.DEFAULT_ROTATE_RATE_MS)))
+                                                                      description  = 'LCD marquee update rate in fractional seconds.  Default: {d}s'.format(d = ROS_Lcd.DEFAULT_ROTATE_RATE_S)))
 
         self.declare_parameter('scroll_rate_ms',
-                               ROS_Lcd.DEFAULT_UPDATE_RATE_MS,
+                               ROS_Lcd.DEFAULT_SCROLL_RATE_S,
                                rcl_interfaces.msg.ParameterDescriptor(type         = rcl_interfaces.msg.ParameterType.PARAMETER_DOUBLE,
-                                                                      description  = 'LCD scroll update rate in fractional seconds.  Default: {d}s'.format(d = ROS_Lcd.DEFAULT_SCROLL_RATE_MS)))
+                                                                      description  = 'LCD scroll update rate in fractional seconds.  Default: {d}s'.format(d = ROS_Lcd.DEFAULT_SCROLL_RATE_S)))
 
         lcd_constructor = _PCF8574_LCD if not self.get_parameter('use_mock_lcd').get_parameter_value().bool_value else _TerminalLCD
         self.device     = lcd_constructor(address = address, cols = cols, rows = rows)
@@ -179,10 +180,10 @@ class _LCD(object):
 class _PCF8574_LCD(_LCD):
     
     def __init__(self, address = None, cols = 20, rows = 2, backlight_enabled = True):
-        super(_PCF8574_LCD, self).__init__(cols = cols, rows = rows)
-        
         from RPLCD.i2c import CharLCD
         self.device = CharLCD(i2c_expander='PCF8574', address=address, cols=cols, rows=rows, backlight_enabled=backlight_enabled)
+
+        super(_PCF8574_LCD, self).__init__(cols = cols, rows = rows)
 
     def on(self):
         self.device.backlight_enabled = True
